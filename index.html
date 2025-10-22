@@ -62,21 +62,6 @@
     .buttons button:hover {
       background: #e8eaed;
     }
-    #results {
-      margin-top: 40px;
-      max-width: 600px;
-    }
-    .result {
-      margin-bottom: 20px;
-    }
-    .result a {
-      font-weight: bold;
-      color: #3d7cf1;
-      text-decoration: none;
-    }
-    .result span {
-      color: #555;
-    }
     .grid-launcher {
       position: absolute;
       top: 20px;
@@ -157,8 +142,6 @@
     </div>
   </form>
 
-  <div id="results"></div>
-
   <footer>
     Powered by JoySearch. Built and coded by JoyCode Studios.
   </footer>
@@ -169,43 +152,16 @@
       menu.style.display = menu.style.display === "grid" ? "none" : "grid";
     }
 
-    async function performSearch(event) {
+    function performSearch(event) {
       event.preventDefault();
       const query = document.getElementById("searchInput").value.trim();
-      const resultsDiv = document.getElementById("results");
-
-      if (!query) {
-        resultsDiv.innerHTML = "Please enter a search query.";
-        return;
-      }
-
-      resultsDiv.innerHTML = "Searching Joyfully…";
-
-      const endpoint = `https://joysearch-worker.macaulayfernandeschannel.workers.dev/?q=${encodeURIComponent(query)}&safe=active`;
-
-      try {
-        const res = await fetch(endpoint);
-        const data = await res.json();
-
-        if (!data.items || data.items.length === 0) {
-          resultsDiv.innerHTML = "No results found.";
-          return;
-        }
-
-        resultsDiv.innerHTML = data.items.map(item => `
-          <div class="result">
-            <a href="${item.link}" target="_blank">${item.title}</a><br>
-            <span>${item.snippet}</span>
-          </div>
-        `).join('');
-      } catch (err) {
-        resultsDiv.innerHTML = "Error fetching results.";
-        console.error(err);
-      }
+      if (!query) return;
+      window.location.href = `/results.html?q=${encodeURIComponent(query)}&type=all`;
     }
 
     function feelingJoyful() {
-      const query = document.getElementById('searchInput').value;
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) return;
       window.location = `https://www.google.com/search?btnI=1&q=${encodeURIComponent(query)}`;
     }
   </script>

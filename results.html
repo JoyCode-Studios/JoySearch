@@ -73,7 +73,7 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const query = params.get("q");
+    const query = params.get("q")?.trim();
     const type = params.get("type") || "all";
     const resultsDiv = document.getElementById("results");
     const tabsDiv = document.getElementById("tabs");
@@ -85,6 +85,7 @@
     ];
 
     function renderTabs() {
+      if (!query) return;
       tabsDiv.innerHTML = tabOptions.map(tab => {
         const active = tab.value === type ? "active-tab" : "";
         return `<a href="?q=${encodeURIComponent(query)}&type=${tab.value}" class="tab ${active}">${tab.label}</a>`;
@@ -107,22 +108,28 @@
 
       try {
         const res = await fetch(endpoint);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
-        if (!data.items || data.items.length === 0) {
+        if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
           resultsDiv.innerHTML = "No results found.";
           return;
         }
 
-        resultsDiv.innerHTML = data.items.map(item => `
-          <div class="result">
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <span>${item.snippet || ''}</span>
-          </div>
-        `).join('');
+        resultsDiv.innerHTML = data.items.map(item => {
+          const title = item.title || "Untitled Result";
+          const link = item.link || "#";
+          const snippet = item.snippet || "";
+          return `
+            <div class="result">
+              <a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a>
+              <span>${snippet}</span>
+            </div>
+          `;
+        }).join('');
       } catch (err) {
-        resultsDiv.innerHTML = "Error fetching results.";
-        console.error(err);
+        resultsDiv.innerHTML = "Error fetching results. Please try again later.";
+        console.error("Fetch error:", err);
       }
     }
 
