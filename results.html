@@ -53,6 +53,22 @@
       color: #555;
       margin-top: 4px;
     }
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+    }
+    .image-item img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    .image-item a {
+      display: block;
+      margin-top: 6px;
+      font-size: 14px;
+      color: #3d7cf1;
+      text-decoration: none;
+    }
     footer {
       margin-top: 60px;
       font-size: 14px;
@@ -80,8 +96,7 @@
 
     const tabOptions = [
       { label: "All", value: "all" },
-      { label: "Images", value: "image" },
-      { label: "Videos", value: "video" }
+      { label: "Images", value: "image" }
     ];
 
     function renderTabs() {
@@ -98,13 +113,7 @@
         return;
       }
 
-      let endpoint = `https://joysearch-worker.macaulayfernandeschannel.workers.dev/?q=${encodeURIComponent(query)}&safe=active`;
-
-      if (type === "image") {
-        endpoint += `&searchType=image`;
-      } else if (type === "video") {
-        endpoint += `&siteSearch=youtube.com`;
-      }
+      let endpoint = `https://joysearch-worker.macaulayfernandeschannel.workers.dev/?q=${encodeURIComponent(query)}&safe=active&type=${type}`;
 
       try {
         const res = await fetch(endpoint);
@@ -116,17 +125,32 @@
           return;
         }
 
-        resultsDiv.innerHTML = data.items.map(item => {
-          const title = item.title || "Untitled Result";
-          const link = item.link || "#";
-          const snippet = item.snippet || "";
-          return `
-            <div class="result">
-              <a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a>
-              <span>${snippet}</span>
-            </div>
-          `;
-        }).join('');
+        if (type === "image") {
+          resultsDiv.innerHTML = `<div class="image-grid">` + data.items.map(item => {
+            const imgSrc = item.link || "";
+            const title = item.title || "Image";
+            return `
+              <div class="image-item">
+                <a href="${imgSrc}" target="_blank" rel="noopener noreferrer">
+                  <img src="${imgSrc}" alt="${title}" />
+                </a>
+                <a href="${imgSrc}" target="_blank" rel="noopener noreferrer">${title}</a>
+              </div>
+            `;
+          }).join('') + `</div>`;
+        } else {
+          resultsDiv.innerHTML = data.items.map(item => {
+            const title = item.title || "Untitled Result";
+            const link = item.link || "#";
+            const snippet = item.snippet || "";
+            return `
+              <div class="result">
+                <a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a>
+                <span>${snippet}</span>
+              </div>
+            `;
+          }).join('');
+        }
       } catch (err) {
         resultsDiv.innerHTML = "Error fetching results. Please try again later.";
         console.error("Fetch error:", err);
