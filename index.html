@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JoySearch</title>
-  <link rel="shortcut icon" href="favicon.png" type="image/png">
+  <link rel="shortcut icon" href="favicon.png" type="image/png" />
   <style>
     body {
       margin: 0;
@@ -13,8 +13,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding-top: 60px;
     }
     .logo {
       font-size: 56px;
@@ -63,35 +62,152 @@
     .buttons button:hover {
       background: #e8eaed;
     }
-    footer {
+    #results {
+      margin-top: 40px;
+      max-width: 600px;
+    }
+    .result {
+      margin-bottom: 20px;
+    }
+    .result a {
+      font-weight: bold;
+      color: #3d7cf1;
+      text-decoration: none;
+    }
+    .result span {
+      color: #555;
+    }
+    .grid-launcher {
       position: absolute;
-      bottom: 16px;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+    }
+    .grid-icon {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .grid-icon div {
+      width: 6px;
+      height: 6px;
+      background: #3d7cf1;
+      border-radius: 50%;
+    }
+    .grid-menu {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      padding: 12px;
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      z-index: 1000;
+    }
+    .grid-menu a {
+      text-align: center;
+      font-size: 12px;
+      color: #333;
+      text-decoration: none;
+    }
+    .grid-menu a:hover {
+      color: #3d7cf1;
+    }
+    footer {
+      margin-top: 60px;
       font-size: 14px;
       color: #70757a;
     }
   </style>
 </head>
 <body>
-  <div class="logo">
-    <span class="joy">Joy</span>Search
+  <div class="logo"><span class="joy">Joy</span>Search</div>
+
+  <div class="grid-launcher" onclick="toggleGridMenu()">
+    <div class="grid-icon">
+      <div></div><div></div><div></div>
+      <div></div><div></div><div></div>
+      <div></div><div></div><div></div>
+    </div>
   </div>
-  <form class="search" action="https://www.google.com/search" method="GET">
+
+  <div class="grid-menu" id="gridMenu">
+    <a href="https://echoai.joycode.co.uk">EchoAI</a>
+    <a href="https://search.joycode.co.uk">JoySearch</a>
+    <a href="https://docs.joycode.co.uk">Docs</a>
+    <a href="https://www.joycode.co.uk/tools">Tools</a>
+    <a href="https://www.joycode.co.uk/shop">Shop</a>
+    <a href="https://www.joycode.co.uk">About</a>
+  </div>
+
+  <form class="search" onsubmit="performSearch(event)">
     <div class="search-box">
-      <input type="text" name="q" placeholder="Search JoySearch or type a URL">
+      <input type="text" id="searchInput" placeholder="Search JoySearch or type a URL" />
     </div>
     <div class="buttons">
-  <button type="submit">JoySearch</button>
-  <button type="button"
-    onclick="window.location='https://www.google.com/search?btnI=1&q='+encodeURIComponent(this.form.q.value)">
-    I'm Feeling Joyful
-  </button>
-  <button type="button" onclick="window.location='https://echoai.joycode.co.uk'">
-    EchoAI
-  </button>
-</div>
+      <button type="submit">JoySearch</button>
+      <button type="button" onclick="feelingJoyful()">I'm Feeling Joyful</button>
+      <button type="button" onclick="window.location='https://echoai.joycode.co.uk'">EchoAI</button>
+    </div>
   </form>
+
+  <div id="results"></div>
+
   <footer>
-    Powered by Google Search. Built and coded by JoyCode Studios.
+    Powered by JoySearch. Built and coded by JoyCode Studios.
   </footer>
+
+  <script>
+    function toggleGridMenu() {
+      const menu = document.getElementById("gridMenu");
+      menu.style.display = menu.style.display === "grid" ? "none" : "grid";
+    }
+
+    async function performSearch(event) {
+      event.preventDefault();
+      const query = document.getElementById("searchInput").value.trim();
+      const resultsDiv = document.getElementById("results");
+
+      if (!query) {
+        resultsDiv.innerHTML = "Please enter a search query.";
+        return;
+      }
+
+      resultsDiv.innerHTML = "Searching Joyfully…";
+
+      const endpoint = `https://joysearch-worker.macaulayfernandeschannel.workers.dev/?q=${encodeURIComponent(query)}&safe=active`;
+
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+
+        if (!data.items || data.items.length === 0) {
+          resultsDiv.innerHTML = "No results found.";
+          return;
+        }
+
+        resultsDiv.innerHTML = data.items.map(item => `
+          <div class="result">
+            <a href="${item.link}" target="_blank">${item.title}</a><br>
+            <span>${item.snippet}</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        resultsDiv.innerHTML = "Error fetching results.";
+        console.error(err);
+      }
+    }
+
+    function feelingJoyful() {
+      const query = document.getElementById('searchInput').value;
+      window.location = `https://www.google.com/search?btnI=1&q=${encodeURIComponent(query)}`;
+    }
+  </script>
 </body>
 </html>
